@@ -1,6 +1,7 @@
 import os
+from typing import Any, Optional
 
-from flask import Blueprint, request, abort
+from flask import Blueprint, request, abort, Response, Request
 
 from utils import execute
 
@@ -11,9 +12,9 @@ DATA_DIR = os.path.join(BASE_DIR, "data")
 
 
 @perform_query_blueprint.post("/perform_query")
-def perform_query():
+def perform_query() -> Response:
     # Check request
-    data = request.json
+    data: Any = request.json
     if "query" not in data.keys() or "file_name" not in data.keys():
         abort(400, description="Check query or filename")
     # Check filename

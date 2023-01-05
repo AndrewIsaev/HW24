@@ -1,9 +1,11 @@
-from typing import Iterable
+import re
+from re import Pattern
+from typing import Iterable, Generator, Callable, Optional
 
-from flask import jsonify
+from flask import jsonify, Response
 
 
-def read_file(filename: str):
+def read_file(filename: str) -> Generator:
     with open(filename) as file:
         for line in file:
             yield line
@@ -16,7 +18,7 @@ def filter_query(value: str, data: Iterable[str]) -> list:
     return list(filter(lambda x: value in x, data))
 
 
-def unique(data: Iterable[str], *args, **kwargs) -> set:
+def unique(data: Iterable[str], *args: tuple, **kwargs: dict) -> set:
     """
     Return unique data
     """
@@ -45,16 +47,22 @@ def sort_query(value: str, data: Iterable[str]) -> Iterable[str]:
     return sorted(data, reverse=reverse)
 
 
-CMDS = {
+def regex_query(value: str, data: Iterable[str]) -> Iterable[str]:
+    regex: Pattern[str] = re.compile(value)
+    return filter(lambda x: re.search(regex, x), data)
+
+
+CMDS: dict[Optional[str], Callable] = {
     "filter": filter_query,
     "unique": unique,
     "map": map_query,
     "limit": limit_query,
-    "sort": sort_query
+    "sort": sort_query,
+    "regex": regex_query
 }
 
 
-def execute(query: dict[str:str], filename: str):
+def execute(query: dict[str, str], filename: str) -> Response:
     """
     Execute user commands
     """
